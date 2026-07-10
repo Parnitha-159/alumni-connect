@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Events & Reunions | Alumni Connect</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar" id="main-navbar"></nav>
+
+  <main class="container">
+    <div class="section-title">
+      <h2>Events, Reunions & Webinars</h2>
+      <p style="color:var(--text-muted);">Stay connected, attend career guidance webinars, and participate in campus reunions.</p>
+    </div>
+
+    <!-- Create Event Section (For Admin only) -->
+    <section id="create-event-section" class="form-card" style="display: none; margin-bottom: 3rem; max-width: 100%;">
+      <h3 style="border-bottom: 2px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 1.5rem;">
+        Create New Event / Announcement
+      </h3>
+      <form id="event-create-form" onsubmit="submitEventCreate(event)">
+        <div class="form-group">
+          <label for="event-title">Event Title</label>
+          <input type="text" id="event-title" class="form-control" placeholder="e.g. Alumni Meet 2026" required>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="event-date">Date</label>
+            <input type="date" id="event-date" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="event-location">Location / Venue</label>
+            <input type="text" id="event-location" class="form-control" placeholder="e.g. College Campus / Zoom" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="event-base-rsvp">Initial/Mock RSVP Count</label>
+          <input type="number" id="event-base-rsvp" class="form-control" placeholder="e.g. 45" value="0">
+        </div>
+
+        <div class="form-group">
+          <label for="event-description">Event Details & Description</label>
+          <textarea id="event-description" class="form-control" rows="4" placeholder="Mention agenda, timings, eligibility, food arrangement, link to join..." required></textarea>
+        </div>
+
+        <div style="display: flex; gap: 1rem;">
+          <button type="submit" class="btn btn-primary">Publish Event</button>
+          <button type="button" class="btn btn-secondary" onclick="hideEventForm()" style="color:var(--text-dark); border-color:var(--border-color);">Cancel</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Top actions -->
+    <div style="display: flex; justify-content: flex-end; margin-bottom: 2rem;" id="admin-actions">
+      <button id="create-event-btn" class="btn btn-primary" onclick="showEventForm()" style="display: none;">
+        <i class="fa-solid fa-calendar-plus"></i> Create New Event
+      </button>
+    </div>
+
+    <!-- Events Cards Grid -->
+    <section class="card-grid" id="events-grid">
+      <div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--text-muted);">
+        Loading events...
+      </div>
+    </section>
+  </main>
+
+  <footer style="background-color: var(--primary-dark); color: white; padding: 2.5rem; text-align: center; border-top: 4px solid var(--accent-color); margin-top: 4rem;">
+    <p>&copy; 2026 VSB Engineering College - ECE Department. All rights reserved.</p>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/js/api.js"></script>
+  <script src="/js/app.js"></script>
+  <script>
+    const user = getUser();
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadEvents();
+      if (user && user.role === 'admin') {
+        document.getElementById('create-event-btn').style.display = 'block';
+      }
+    });
+
+    async function loadEvents() {
+      const grid = document.getElementById('events-grid');
+
+      try {
+        const events = await apiCall('/events');
+        
+        if (events.length === 0) {
+          grid.innerHTML = `
+            <div style="grid-column: 1/-1; text-align: center; padding: 3rem; background: white; border-radius: var(--radius-md); box-shadow: var(--shadow-soft);">
+              <i class="fa-solid fa-calendar-times" style="font-size: 3rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
+              <p style="color: var(--text-muted);">No events scheduled at the moment.</p>
+            </div>
+          `;
+          return;
+        }
+
+        grid.innerHTML = events.map(e => {
+          const totalRsvps = (e.base_rsvp_count || 0) + (e.active_rsvp_count || 0);
+          
+          let rsvpBtnClass = e.user_has_rsvped ? 'btn-primary' : 'btn-secondary';
+          let rsvpBtnText = e.user_has_rsvped 
+            ? `<i class="fa-solid fa-check"></i> RSVP'd` 
+            : `<i class="fa-solid fa-calendar-check"></i> RSVP Now`;
+          
+          if (!e.user_has_rsvped) {
+            rsvpBtnClass = 'btn-secondary';
+          }
+
+          const styleColor = e.user_has_rsvped ? 'color: var(--primary-dark); border-color: var(--accent-color);' : 'color: var(--primary-color); border-color: var(--primary-color);';
+
+          return `
+            <div class="card" style="border-top: 5px solid var(--accent-color);">
+              <div class="card-body">
+                <span class="card-badge" style="position:static; display:inline-block; margin-bottom:0.75rem;"><i class="fa-solid fa-calendar-days"></i> ${new Date(e.date).toLocaleDateString()}</span>
+                <h3>${e.title}</h3>
+                <div class="card-subtitle" style="margin-top:0.25rem;">
+                  <i class="fa-solid fa-location-dot" style="color:var(--accent-color);"></i>
+                  <span>${e.location}</span>
+                </div>
+                <p class="card-text" style="font-size:0.95rem; margin-top:0.75rem; white-space:pre-line;">
+                  ${e.description}
+                </p>
+                <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #edf2f7; padding-top:1rem; margin-top:auto;">
+                  <span style="font-size:0.9rem; font-weight:600; color:var(--primary-color);">
+                    <i class="fa-solid fa-users"></i> ${totalRsvps} Attending
+                  </span>
+                  
+                  <button onclick="toggleRsvp(${e.id})" class="btn ${rsvpBtnClass}" style="padding: 0.4rem 1rem; font-size: 0.85rem; ${styleColor}">
+                    ${rsvpBtnText}
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+      } catch (err) {
+        grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: #e53e3e;">${err.message}</div>`;
+      }
+    }
+
+    function showEventForm() {
+      document.getElementById('create-event-section').style.display = 'block';
+      document.getElementById('event-title').focus();
+      document.getElementById('create-event-section').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function hideEventForm() {
+      document.getElementById('create-event-section').style.display = 'none';
+      document.getElementById('event-create-form').reset();
+    }
+
+    async function submitEventCreate(event) {
+      event.preventDefault();
+      const title = document.getElementById('event-title').value;
+      const date = document.getElementById('event-date').value;
+      const location = document.getElementById('event-location').value;
+      const base_rsvp_count = document.getElementById('event-base-rsvp').value;
+      const description = document.getElementById('event-description').value;
+
+      try {
+        await apiCall('/events', {
+          method: 'POST',
+          body: JSON.stringify({ title, date, location, base_rsvp_count, description })
+        });
+
+        showToast('Event created successfully!');
+        hideEventForm();
+        loadEvents();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    async function toggleRsvp(id) {
+      try {
+        const res = await apiCall(`/events/${id}/rsvp`, { method: 'POST' });
+        showToast(res.message);
+        loadEvents();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Success Stories | Alumni Connect</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar" id="main-navbar"></nav>
+
+  <main class="container">
+    <div class="section-title">
+      <h2>Alumni Success Stories & Spotlight</h2>
+      <p style="color:var(--text-muted);">Inspiring career paths and achievements of our alumni, serving as beacons for current students.</p>
+    </div>
+
+    <!-- Submit Story Section (For alumni users) -->
+    <section id="story-submission-section" class="form-card" style="display: none; margin-bottom: 3rem; max-width: 100%;">
+      <h3 style="border-bottom: 2px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 1.5rem;">
+        Share Your Success Story
+      </h3>
+      <form id="public-story-form" onsubmit="submitPublicStory(event)">
+        <div class="form-group">
+          <label for="pub-story-headline">Headline / Title</label>
+          <input type="text" id="pub-story-headline" class="form-control" placeholder="e.g. Building Automotive Sensors at Bosch" required>
+        </div>
+        <div class="form-group">
+          <label for="pub-story-photo">Story Banner Photo URL (Unsplash image link or similar)</label>
+          <input type="url" id="pub-story-photo" class="form-control" placeholder="e.g. https://images.unsplash.com/photo-...">
+        </div>
+        <div class="form-group">
+          <label for="pub-story-writeup">Your Story (200-250 words max)</label>
+          <textarea id="pub-story-writeup" class="form-control" rows="6" placeholder="Describe your journey, key milestones, preparation strategy, and key advice..." required></textarea>
+        </div>
+        <div style="display: flex; gap: 1rem;">
+          <button type="submit" class="btn btn-primary">Submit Story</button>
+          <button type="button" class="btn btn-secondary" onclick="hideStoryForm()" style="color:var(--text-dark); border-color:var(--border-color);">Cancel</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Top Action Banner -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+      <!-- Department Filter buttons -->
+      <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;" id="dept-filter-btns">
+        <button class="btn btn-teal" onclick="filterStories('')" id="btn-all">All Depts</button>
+        <button class="btn btn-secondary" onclick="filterStories('ECE')" id="btn-ECE" style="color:var(--text-dark); border-color:var(--border-color);">ECE</button>
+        <button class="btn btn-secondary" onclick="filterStories('CSE')" id="btn-CSE" style="color:var(--text-dark); border-color:var(--border-color);">CSE</button>
+        <button class="btn btn-secondary" onclick="filterStories('IT')" id="btn-IT" style="color:var(--text-dark); border-color:var(--border-color);">IT</button>
+        <button class="btn btn-secondary" onclick="filterStories('EEE')" id="btn-EEE" style="color:var(--text-dark); border-color:var(--border-color);">EEE</button>
+      </div>
+
+      <button id="show-story-form-btn" class="btn btn-primary" onclick="showStoryForm()" style="display: none;">
+        <i class="fa-solid fa-feather-pointed"></i> Share Your Story
+      </button>
+    </div>
+
+    <!-- Stories Grid -->
+    <section class="card-grid" id="stories-grid">
+      <div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--text-muted);">
+        Loading success stories...
+      </div>
+    </section>
+  </main>
+
+  <footer style="background-color: var(--primary-dark); color: white; padding: 2.5rem; text-align: center; border-top: 4px solid var(--accent-color); margin-top: 4rem;">
+    <p>&copy; 2026 VSB Engineering College - ECE Department. All rights reserved.</p>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/js/api.js"></script>
+  <script src="/js/app.js"></script>
+  <script>
+    let activeDeptFilter = '';
+    const user = getUser();
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadStories();
+      if (user && (user.role === 'alumni' || user.role === 'admin')) {
+        document.getElementById('show-story-form-btn').style.display = 'block';
+      }
+    });
+
+    async function loadStories() {
+      const grid = document.getElementById('stories-grid');
+      let url = '/stories';
+      if (activeDeptFilter) {
+        url += `?department=${activeDeptFilter}`;
+      }
+
+      try {
+        const stories = await apiCall(url);
+        
+        if (stories.length === 0) {
+          grid.innerHTML = `
+            <div style="grid-column: 1/-1; text-align: center; padding: 3rem; background: white; border-radius: var(--radius-md); box-shadow: var(--shadow-soft);">
+              <i class="fa-solid fa-book-open" style="font-size: 3rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
+              <p style="color: var(--text-muted);">No success stories match the selected criteria.</p>
+            </div>
+          `;
+          return;
+        }
+
+        grid.innerHTML = stories.map(s => `
+          <div class="card" style="border: 1.5px solid rgba(212, 168, 83, 0.25);">
+            <div class="card-header-photo" style="background-image: url('${s.photo || 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80&w=400'}')">
+              <span class="card-badge"><i class="fa-solid fa-graduation-cap"></i> Class Spotlight</span>
+            </div>
+            <div class="card-body">
+              <h3 style="font-size: 1.3rem; margin-bottom: 0.5rem; color: var(--primary-dark); line-height: 1.3;">"${s.headline}"</h3>
+              <div class="card-subtitle" style="margin-bottom: 1rem;">
+                <i class="fa-solid fa-user" style="color: var(--accent-color);"></i>
+                <span>By <strong>${s.author_name}</strong> (${s.department} Department)</span>
+              </div>
+              <p class="card-text" style="font-style: italic; line-height: 1.6; font-size: 0.95rem; color: var(--text-dark);">
+                "${s.writeup}"
+              </p>
+              <p class="card-text" style="font-size: 0.75rem; color: var(--text-muted); margin-top: auto; padding-top: 1rem;">
+                Published on ${new Date(s.created_at).toLocaleDateString()}
+              </p>
+            </div>
+          </div>
+        `).join('');
+
+      } catch (err) {
+        grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: #e53e3e;">${err.message}</div>`;
+      }
+    }
+
+    function filterStories(dept) {
+      activeDeptFilter = dept;
+      
+      // Update buttons active state
+      document.querySelectorAll('#dept-filter-btns button').forEach(btn => {
+        btn.className = 'btn btn-secondary';
+        btn.style.color = 'var(--text-dark)';
+        btn.style.borderColor = 'var(--border-color)';
+      });
+
+      const activeBtnId = dept ? `btn-${dept}` : 'btn-all';
+      const activeBtn = document.getElementById(activeBtnId);
+      if (activeBtn) {
+        activeBtn.className = 'btn btn-teal';
+        activeBtn.style.color = '';
+        activeBtn.style.borderColor = '';
+      }
+
+      loadStories();
+    }
+
+    function showStoryForm() {
+      document.getElementById('story-submission-section').style.display = 'block';
+      document.getElementById('pub-story-headline').focus();
+      document.getElementById('story-submission-section').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function hideStoryForm() {
+      document.getElementById('story-submission-section').style.display = 'none';
+      document.getElementById('public-story-form').reset();
+    }
+
+    async function submitPublicStory(event) {
+      event.preventDefault();
+      const headline = document.getElementById('pub-story-headline').value;
+      const photo = document.getElementById('pub-story-photo').value;
+      const writeup = document.getElementById('pub-story-writeup').value;
+
+      try {
+        await apiCall('/stories', {
+          method: 'POST',
+          body: JSON.stringify({ headline, photo, writeup })
+        });
+
+        showToast('Success story submitted! Pending admin review.');
+        hideStoryForm();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+  </script>
+</body>
+</html>

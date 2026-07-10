@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alumni Directory | Alumni Connect</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- FontAwesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar" id="main-navbar"></nav>
+
+  <main class="container">
+    <div class="section-title">
+      <h2>Alumni Directory</h2>
+      <p style="color: var(--text-muted);">Browse and filter profiles of our esteemed engineering graduates.</p>
+    </div>
+
+    <!-- Filters Bar -->
+    <section class="filters-bar">
+      <div class="filter-group">
+        <label for="filter-batch" style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:0.35rem; color:var(--primary-color);">Batch Year</label>
+        <input type="number" id="filter-batch" class="form-control" placeholder="e.g. 2020" oninput="fetchDirectory()">
+      </div>
+      <div class="filter-group">
+        <label for="filter-dept" style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:0.35rem; color:var(--primary-color);">Department</label>
+        <select id="filter-dept" class="form-control" onchange="fetchDirectory()">
+          <option value="">All Departments</option>
+          <option value="ECE">ECE</option>
+          <option value="CSE">CSE</option>
+          <option value="IT">IT</option>
+          <option value="EEE">EEE</option>
+          <option value="MECH">MECH</option>
+          <option value="CIVIL">CIVIL</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="filter-company" style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:0.35rem; color:var(--primary-color);">Company / Institution</label>
+        <input type="text" id="filter-company" class="form-control" placeholder="e.g. Zoho" oninput="fetchDirectory()">
+      </div>
+      <div class="filter-group">
+        <label for="filter-location" style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:0.35rem; color:var(--primary-color);">Location</label>
+        <input type="text" id="filter-location" class="form-control" placeholder="e.g. Chennai" oninput="fetchDirectory()">
+      </div>
+      <div class="filter-group" style="display:flex; align-items:center; height:45px; gap:0.5rem; min-width:150px;">
+        <input type="checkbox" id="filter-mentor" style="width:18px; height:18px;" onchange="fetchDirectory()">
+        <label for="filter-mentor" style="font-weight:600; font-size:0.85rem; color:var(--primary-color); cursor:pointer;">Available Mentors</label>
+      </div>
+      <button class="btn btn-teal" onclick="resetFilters()">Reset Filters</button>
+    </section>
+
+    <!-- Cards Grid -->
+    <section class="card-grid" id="directory-grid">
+      <div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--text-muted);">
+        Loading directory...
+      </div>
+    </section>
+  </main>
+
+  <footer style="background-color: var(--primary-dark); color: white; padding: 2.5rem; text-align: center; border-top: 4px solid var(--accent-color); margin-top: 4rem;">
+    <p>&copy; 2026 VSB Engineering College - ECE Department. All rights reserved.</p>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/js/api.js"></script>
+  <script src="/js/app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      fetchDirectory();
+    });
+
+    async function fetchDirectory() {
+      const batch = document.getElementById('filter-batch').value;
+      const dept = document.getElementById('filter-dept').value;
+      const company = document.getElementById('filter-company').value;
+      const location = document.getElementById('filter-location').value;
+      const mentorOnly = document.getElementById('filter-mentor').checked;
+
+      let queryParams = [];
+      if (batch) queryParams.push(`batch_year=${batch}`);
+      if (dept) queryParams.push(`department=${dept}`);
+      if (company) queryParams.push(`company=${encodeURIComponent(company)}`);
+      if (location) queryParams.push(`location=${encodeURIComponent(location)}`);
+      if (mentorOnly) queryParams.push(`mentor_only=true`);
+
+      const queryStr = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
+      const grid = document.getElementById('directory-grid');
+
+      try {
+        const alumni = await apiCall(`/alumni${queryStr}`);
+        
+        if (alumni.length === 0) {
+          grid.innerHTML = `
+            <div style="grid-column: 1/-1; text-align: center; padding: 3rem; background: white; border-radius: var(--radius-md); box-shadow: var(--shadow-soft);">
+              <i class="fa-solid fa-users-slash" style="font-size: 3rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
+              <p style="color: var(--text-muted);">No alumni match the selected filters.</p>
+            </div>
+          `;
+          return;
+        }
+
+        grid.innerHTML = alumni.map(a => {
+          const mentorBadge = a.mentor_opt_in 
+            ? `<span class="card-badge"><i class="fa-solid fa-graduation-cap"></i> Mentor</span>` 
+            : '';
+          
+          const companyRole = a.current_company 
+            ? `${a.current_role || 'Employee'} at <strong>${a.current_company}</strong>` 
+            : 'Looking for Opportunities / Independent';
+
+          const mailLink = `mailto:${a.email}`;
+          
+          return `
+            <div class="card">
+              <div class="card-header-photo" style="background-image: url('${a.profile_photo || '/images/default-avatar.png'}')">
+                ${mentorBadge}
+              </div>
+              <div class="card-body">
+                <h3>${a.name}</h3>
+                <div class="card-subtitle">
+                  <i class="fa-solid fa-graduation-cap"></i>
+                  <span>Class of ${a.batch_year} &bull; ${a.department} Dept</span>
+                </div>
+                <p class="card-text">
+                  <i class="fa-solid fa-briefcase" style="color: var(--accent-color); margin-right: 0.5rem;"></i>
+                  ${companyRole}
+                </p>
+                <p class="card-text" style="font-size: 0.85rem; color: var(--text-muted);">
+                  <i class="fa-solid fa-location-dot" style="color: var(--accent-color); margin-right: 0.5rem;"></i>
+                  ${a.location || 'Not Specified'}
+                </p>
+                
+                ${a.mentor_opt_in ? `
+                  <p class="card-text" style="font-size: 0.85rem; padding: 0.5rem; background: rgba(212, 168, 83, 0.1); border-radius: 4px; border-left: 3px solid var(--accent-color); margin-top: auto;">
+                    <strong>Mentor Domain:</strong> ${a.mentor_expertise || 'General'}
+                  </p>
+                ` : ''}
+              </div>
+              <div class="card-footer">
+                <div style="display: flex; gap: 0.75rem;">
+                  ${a.linkedin ? `<a href="${a.linkedin}" target="_blank" style="color: #0077b5; font-size: 1.2rem;" title="LinkedIn"><i class="fa-brands fa-linkedin"></i></a>` : ''}
+                  <a href="${mailLink}" style="color: var(--primary-color); font-size: 1.2rem;" title="Email"><i class="fa-solid fa-envelope"></i></a>
+                </div>
+                <a href="/profile.html?id=${a.user_id}" class="btn btn-teal" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">View Profile</a>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+      } catch (err) {
+        grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: #e53e3e;">${err.message}</div>`;
+      }
+    }
+
+    function resetFilters() {
+      document.getElementById('filter-batch').value = '';
+      document.getElementById('filter-dept').value = '';
+      document.getElementById('filter-company').value = '';
+      document.getElementById('filter-location').value = '';
+      document.getElementById('filter-mentor').checked = false;
+      fetchDirectory();
+    }
+  </script>
+</body>
+</html>

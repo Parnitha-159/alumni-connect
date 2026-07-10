@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Authentication | Alumni Connect</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar" id="main-navbar"></nav>
+
+  <main class="container">
+    <div class="form-card">
+      <div class="form-tab">
+        <div class="tab-btn active" id="tab-login-btn" onclick="switchTab('login')">Sign In</div>
+        <div class="tab-btn" id="tab-register-btn" onclick="switchTab('register')">Register</div>
+      </div>
+
+      <!-- LOGIN FORM -->
+      <form id="login-form" onsubmit="handleLoginSubmit(event)">
+        <div class="form-group">
+          <label for="login-email">Email Address</label>
+          <input type="email" id="login-email" class="form-control" placeholder="e.g. priya@zoho.com" required>
+        </div>
+        <div class="form-group">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" class="form-control" placeholder="Enter password" required>
+        </div>
+        <button type="submit" class="btn btn-teal" style="width: 100%; margin-top: 1rem;">Sign In</button>
+      </form>
+
+      <!-- REGISTER FORM -->
+      <form id="register-form" onsubmit="handleRegisterSubmit(event)" style="display: none;">
+        <div class="form-group">
+          <label for="reg-role">Account Type</label>
+          <select id="reg-role" class="form-control" onchange="toggleRoleFields()" required>
+            <option value="student">Student</option>
+            <option value="alumni">Alumnus / Alumna</option>
+          </select>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="reg-name">Full Name</label>
+            <input type="text" id="reg-name" class="form-control" placeholder="e.g. Priya Ramesh" required>
+          </div>
+          <div class="form-group">
+            <label for="reg-email">Email Address</label>
+            <input type="email" id="reg-email" class="form-control" placeholder="e.g. priya@example.com" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="reg-password">Password</label>
+            <input type="password" id="reg-password" class="form-control" placeholder="Min 6 characters" required>
+          </div>
+          <div class="form-group">
+            <label for="reg-dept">Department</label>
+            <select id="reg-dept" class="form-control" required>
+              <option value="ECE">ECE</option>
+              <option value="CSE">CSE</option>
+              <option value="IT">IT</option>
+              <option value="EEE">EEE</option>
+              <option value="MECH">MECH</option>
+              <option value="CIVIL">CIVIL</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- ALUMNI SPECIFIC FIELDS -->
+        <div id="alumni-only-fields" style="display: none; border-top: 1.5px dashed var(--border-color); padding-top: 1rem; margin-top: 1rem;">
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="reg-batch">Batch Year</label>
+              <input type="number" id="reg-batch" class="form-control" placeholder="e.g. 2020">
+            </div>
+            <div class="form-group">
+              <label for="reg-location">Current Location (City/Country)</label>
+              <input type="text" id="reg-location" class="form-control" placeholder="e.g. Chennai">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="reg-company">Current Company</label>
+              <input type="text" id="reg-company" class="form-control" placeholder="e.g. Zoho">
+            </div>
+            <div class="form-group">
+              <label for="reg-jobrole">Current Role</label>
+              <input type="text" id="reg-jobrole" class="form-control" placeholder="e.g. Software Engineer">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="reg-linkedin">LinkedIn Profile URL</label>
+              <input type="url" id="reg-linkedin" class="form-control" placeholder="https://linkedin.com/in/username">
+            </div>
+            <div class="form-group">
+              <label for="reg-phone">Phone Number</label>
+              <input type="tel" id="reg-phone" class="form-control" placeholder="10-digit number">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="reg-photo">Profile Photo</label>
+            <input type="file" id="reg-photo" class="form-control" accept="image/*" onchange="processPhoto(event)">
+            <input type="hidden" id="reg-photo-base64">
+          </div>
+
+          <div class="form-group">
+            <label for="reg-bio">Short Professional Bio</label>
+            <textarea id="reg-bio" class="form-control" rows="3" placeholder="Tell us briefly about your career path..."></textarea>
+          </div>
+
+          <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem; margin-top: 1rem;">
+            <input type="checkbox" id="reg-mentor-opt" style="width: 18px; height: 18px;" onchange="toggleMentorExpertise()">
+            <label for="reg-mentor-opt" style="margin-bottom: 0; cursor: pointer;">Opt in as a Mentor for students</label>
+          </div>
+
+          <div class="form-group" id="mentor-expertise-group" style="display: none; margin-top: 0.5rem;">
+            <label for="reg-mentor-exp">Domain / Expertise Area</label>
+            <input type="text" id="reg-mentor-exp" class="form-control" placeholder="e.g. Web Development, VLSI, Embedded Systems">
+          </div>
+
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1.5rem;">Create Account</button>
+      </form>
+    </div>
+  </main>
+
+  <!-- Scripts -->
+  <script src="/js/api.js"></script>
+  <script src="/js/app.js"></script>
+  <script>
+    // Show session expired message if redirected
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('session_expired')) {
+      showToast('Your session has expired. Please sign in again.', 'error');
+    }
+
+    function switchTab(mode) {
+      const loginForm = document.getElementById('login-form');
+      const registerForm = document.getElementById('register-form');
+      const loginTab = document.getElementById('tab-login-btn');
+      const registerTab = document.getElementById('tab-register-btn');
+
+      if (mode === 'login') {
+        loginForm.style.display = 'block';
+        registerForm.style.display = 'none';
+        loginTab.classList.add('active');
+        registerTab.classList.remove('active');
+      } else {
+        loginForm.style.display = 'none';
+        registerForm.style.display = 'block';
+        loginTab.classList.remove('active');
+        registerTab.classList.add('active');
+      }
+    }
+
+    function toggleRoleFields() {
+      const role = document.getElementById('reg-role').value;
+      const alumniFields = document.getElementById('alumni-only-fields');
+      const batch = document.getElementById('reg-batch');
+      
+      if (role === 'alumni') {
+        alumniFields.style.display = 'block';
+        batch.setAttribute('required', 'true');
+      } else {
+        alumniFields.style.display = 'none';
+        batch.removeAttribute('required');
+      }
+    }
+
+    function toggleMentorExpertise() {
+      const optIn = document.getElementById('reg-mentor-opt').checked;
+      const expGroup = document.getElementById('mentor-expertise-group');
+      const expInput = document.getElementById('reg-mentor-exp');
+      
+      if (optIn) {
+        expGroup.style.display = 'block';
+        expInput.setAttribute('required', 'true');
+      } else {
+        expGroup.style.display = 'none';
+        expInput.removeAttribute('required');
+      }
+    }
+
+    // Convert uploaded image to base64
+    function processPhoto(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById('reg-photo-base64').value = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Handle Login Submit
+    async function handleLoginSubmit(event) {
+      event.preventDefault();
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+
+      try {
+        const data = await apiCall('/auth/login', {
+          method: 'POST',
+          body: JSON.stringify({ email, password })
+        });
+        
+        setToken(data.token);
+        setUser(data.user);
+        
+        showToast('Login successful!');
+        
+        // Handle redirect or go to dashboard
+        const redirect = params.get('redirect');
+        setTimeout(() => {
+          window.location.href = redirect ? decodeURIComponent(redirect) : '/dashboard.html';
+        }, 1000);
+      } catch (error) {
+        showToast(error.message, 'error');
+      }
+    }
+
+    // Handle Register Submit
+    async function handleRegisterSubmit(event) {
+      event.preventDefault();
+
+      const role = document.getElementById('reg-role').value;
+      const name = document.getElementById('reg-name').value;
+      const email = document.getElementById('reg-email').value;
+      const password = document.getElementById('reg-password').value;
+      const department = document.getElementById('reg-dept').value;
+
+      let bodyData = { role, name, email, password, department };
+
+      if (role === 'alumni') {
+        const batchYear = document.getElementById('reg-batch').value;
+        const location = document.getElementById('reg-location').value;
+        const company = document.getElementById('reg-company').value;
+        const currentRole = document.getElementById('reg-jobrole').value;
+        const linkedin = document.getElementById('reg-linkedin').value;
+        const phone = document.getElementById('reg-phone').value;
+        const bio = document.getElementById('reg-bio').value;
+        const mentorOptIn = document.getElementById('reg-mentor-opt').checked;
+        const mentorExpertise = document.getElementById('reg-mentor-exp').value;
+        const photoBase64 = document.getElementById('reg-photo-base64').value;
+
+        // If base64 photo is uploaded, upload to server first
+        let photoUrl = '';
+        if (photoBase64) {
+          try {
+            const uploadRes = await apiCall('/upload', {
+              method: 'POST',
+              body: JSON.stringify({ base64Data: photoBase64 })
+            });
+            photoUrl = uploadRes.url;
+          } catch (uploadErr) {
+            console.error('Photo upload failed:', uploadErr);
+          }
+        }
+
+        bodyData = {
+          ...bodyData,
+          batchYear,
+          location,
+          company,
+          currentRole,
+          linkedin,
+          phone,
+          bio,
+          mentorOptIn,
+          mentorExpertise,
+          profilePhoto: photoUrl
+        };
+      }
+
+      try {
+        const data = await apiCall('/auth/register', {
+          method: 'POST',
+          body: JSON.stringify(bodyData)
+        });
+
+        showToast(data.message);
+        setTimeout(() => {
+          if (role === 'alumni') {
+            switchTab('login');
+          } else {
+            switchTab('login');
+          }
+        }, 3000);
+      } catch (error) {
+        showToast(error.message, 'error');
+      }
+    }
+  </script>
+</body>
+</html>

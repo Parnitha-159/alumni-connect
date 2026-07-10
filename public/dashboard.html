@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Dashboard | Alumni Connect</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar" id="main-navbar"></nav>
+
+  <main class="container">
+    <div class="dashboard-layout">
+      
+      <!-- SIDEBAR -->
+      <aside class="sidebar" id="dashboard-sidebar">
+        <!-- Rendered dynamically based on role -->
+      </aside>
+
+      <!-- CONTENT PANELS -->
+      <section class="dashboard-content" id="dashboard-panels">
+        
+        <!-- ================= ADMIN PANELS ================= -->
+        
+        <!-- Admin Analytics -->
+        <div id="panel-admin-analytics" class="tab-panel" style="display: none;">
+          <div class="section-title" style="margin-bottom:1.5rem;">
+            <h2>Admin Analytics</h2>
+            <button class="btn btn-primary" onclick="exportAlumniCSV()">
+              <i class="fa-solid fa-file-csv"></i> Export Directory (CSV)
+            </button>
+          </div>
+          <div class="stats-bar" style="margin-bottom:2rem; padding:1.5rem;">
+            <div class="stat-item">
+              <div class="stat-number" id="admin-stat-alumni">0</div>
+              <div class="stat-label">Approved Alumni</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-number" id="admin-stat-students">0</div>
+              <div class="stat-label">Active Students</div>
+            </div>
+          </div>
+
+          <div class="analytics-grid">
+            <div class="chart-card">
+              <h3>Alumni by Department</h3>
+              <div id="chart-dept-container" style="margin-top:1.5rem;">
+                <!-- SVGs will be injected here -->
+              </div>
+            </div>
+            <div class="chart-card">
+              <h3>Alumni by Batch Year</h3>
+              <div id="chart-year-container" style="margin-top:1.5rem;">
+                <!-- SVGs will be injected here -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Admin Pending Approvals -->
+        <div id="panel-admin-pending" class="tab-panel" style="display: none;">
+          <div class="section-title">
+            <h2>Pending Alumni Approvals</h2>
+          </div>
+          <div id="admin-pending-list">
+            <p style="color:var(--text-muted);">No pending registrations at this time.</p>
+          </div>
+        </div>
+
+        <!-- Admin Success Stories -->
+        <div id="panel-admin-stories" class="tab-panel" style="display: none;">
+          <div class="section-title">
+            <h2>Manage Success Stories</h2>
+          </div>
+          <div id="admin-stories-list">
+            <p style="color:var(--text-muted);">No stories pending approval.</p>
+          </div>
+        </div>
+
+        <!-- ================= ALUMNI PANELS ================= -->
+        
+        <!-- Alumni Mentorship Requests -->
+        <div id="panel-alumni-mentorship" class="tab-panel" style="display: none;">
+          <div class="section-title">
+            <h2>Mentorship Requests</h2>
+          </div>
+          <div id="alumni-incoming-requests">
+            <p style="color:var(--text-muted);">No mentorship requests received.</p>
+          </div>
+        </div>
+
+        <!-- Alumni Active Mentees -->
+        <div id="panel-alumni-mentees" class="tab-panel" style="display: none;">
+          <div class="section-title">
+            <h2>Your Active Mentees</h2>
+          </div>
+          <div id="alumni-mentees-list">
+            <p style="color:var(--text-muted);">No active mentees yet.</p>
+          </div>
+        </div>
+
+        <!-- Alumni My Job Postings -->
+        <div id="panel-alumni-jobs" class="tab-panel" style="display: none;">
+          <div class="section-title">
+            <h2>Your Job Postings</h2>
+            <a href="/jobs.html" class="btn btn-teal" style="font-size:0.9rem; padding:0.4rem 1rem;">Post New Job</a>
+          </div>
+          <div id="alumni-jobs-list">
+            <p style="color:var(--text-muted);">You haven't posted any job listings.</p>
+          </div>
+        </div>
+
+        <!-- Alumni Submit Story -->
+        <div id="panel-alumni-story" class="tab-panel" style="display: none;">
+          <div class="section-title">
+            <h2>Submit a Success Story</h2>
+          </div>
+          <div class="form-card" style="margin: 0; max-width: 100%;">
+            <form id="submit-story-form" onsubmit="handleStorySubmit(event)">
+              <div class="form-group">
+                <label for="story-headline">Headline / Catchy Title</label>
+                <input type="text" id="story-headline" class="form-control" placeholder="e.g. From ECE to Frontend at Zoho" required>
+              </div>
+              <div class="form-group">
+                <label for="story-photo">Story Banner Photo URL (Unsplash or similar)</label>
+                <input type="url" id="story-photo" class="form-control" placeholder="https://images.unsplash.com/photo-...">
+              </div>
+              <div class="form-group">
+                <label for="story-writeup">Success Story Writeup (Approx 200 words)</label>
+                <textarea id="story-writeup" class="form-control" rows="8" placeholder="Share your career path, challenges faced, how you overcame them, and guidance for juniors..." required></textarea>
+                <p style="font-size:0.8rem; color:var(--text-muted); margin-top:0.25rem;">Limit: 250 words.</p>
+              </div>
+              <button type="submit" class="btn btn-teal">Submit Story for Admin Review</button>
+            </form>
+          </div>
+        </div>
+
+        <!-- ================= STUDENT PANELS ================= -->
+        
+        <!-- Student Mentorship Status -->
+        <div id="panel-student-mentorship" class="tab-panel" style="display: none;">
+          <div class="section-title">
+            <h2>Your Mentorship Status</h2>
+            <a href="/mentorship.html" class="btn btn-teal" style="font-size:0.9rem; padding:0.4rem 1rem;">Find a Mentor</a>
+          </div>
+          <div id="student-requests-list">
+            <p style="color:var(--text-muted);">You haven't sent any mentorship requests.</p>
+          </div>
+        </div>
+
+      </section>
+    </div>
+  </main>
+
+  <footer style="background-color: var(--primary-dark); color: white; padding: 2.5rem; text-align: center; border-top: 4px solid var(--accent-color); margin-top: 4rem;">
+    <p>&copy; 2026 VSB Engineering College - ECE Department. All rights reserved.</p>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/js/api.js"></script>
+  <script src="/js/app.js"></script>
+  <script>
+    const user = getUser();
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!user) {
+        window.location.href = '/login.html';
+        return;
+      }
+      setupDashboardSidebar();
+      loadDefaultPanel();
+    });
+
+    // 1. Setup sidebar menu based on user role
+    function setupDashboardSidebar() {
+      const sidebar = document.getElementById('dashboard-sidebar');
+      let menuHtml = '';
+
+      if (user.role === 'admin') {
+        menuHtml = `
+          <h3 style="color:var(--accent-color); font-size:1.2rem; margin-bottom:1.5rem; border-bottom:1px solid rgba(255,255,255,0.2); padding-bottom:0.5rem;"><i class="fa-solid fa-user-tie"></i> Admin Panel</h3>
+          <ul class="sidebar-menu">
+            <li class="active" id="li-admin-analytics"><a href="#" onclick="switchPanel('admin-analytics')"><i class="fa-solid fa-chart-line"></i> Analytics</a></li>
+            <li id="li-admin-pending"><a href="#" onclick="switchPanel('admin-pending')"><i class="fa-solid fa-user-plus"></i> Pending Alumni</a></li>
+            <li id="li-admin-stories"><a href="#" onclick="switchPanel('admin-stories')"><i class="fa-solid fa-book-open"></i> Story Approvals</a></li>
+          </ul>
+        `;
+      } else if (user.role === 'alumni') {
+        menuHtml = `
+          <h3 style="color:var(--accent-color); font-size:1.2rem; margin-bottom:1.5rem; border-bottom:1px solid rgba(255,255,255,0.2); padding-bottom:0.5rem;"><i class="fa-solid fa-graduation-cap"></i> Alumni Dashboard</h3>
+          <ul class="sidebar-menu">
+            <li class="active" id="li-alumni-mentorship"><a href="#" onclick="switchPanel('alumni-mentorship')"><i class="fa-solid fa-envelope-open-text"></i> Mentorship Invites</a></li>
+            <li id="li-alumni-mentees"><a href="#" onclick="switchPanel('alumni-mentees')"><i class="fa-solid fa-users"></i> Active Mentees</a></li>
+            <li id="li-alumni-jobs"><a href="#" onclick="switchPanel('alumni-jobs')"><i class="fa-solid fa-briefcase"></i> My Job Postings</a></li>
+            <li id="li-alumni-story"><a href="#" onclick="switchPanel('alumni-story')"><i class="fa-solid fa-feather-pointed"></i> Submit Success Story</a></li>
+            <li style="margin-top:2rem;"><a href="/profile.html?id=${user.id}" style="border:1.5px solid var(--accent-color); color:var(--accent-color);"><i class="fa-solid fa-user-pen"></i> Edit Profile</a></li>
+          </ul>
+        `;
+      } else if (user.role === 'student') {
+        menuHtml = `
+          <h3 style="color:var(--accent-color); font-size:1.2rem; margin-bottom:1.5rem; border-bottom:1px solid rgba(255,255,255,0.2); padding-bottom:0.5rem;"><i class="fa-solid fa-user-graduate"></i> Student Portal</h3>
+          <ul class="sidebar-menu">
+            <li class="active" id="li-student-mentorship"><a href="#" onclick="switchPanel('student-mentorship')"><i class="fa-solid fa-handshake"></i> Mentorship Status</a></li>
+            <li style="margin-top: 1rem;"><a href="/directory.html"><i class="fa-solid fa-users"></i> Search Alumni</a></li>
+            <li><a href="/mentorship.html"><i class="fa-solid fa-graduation-cap"></i> Browse Mentors</a></li>
+            <li><a href="/jobs.html"><i class="fa-solid fa-briefcase"></i> Browse Job Board</a></li>
+          </ul>
+        `;
+      }
+
+      sidebar.innerHTML = menuHtml;
+    }
+
+    // 2. Switch Panels
+    function switchPanel(panelId) {
+      // Hide all panels
+      document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
+      // Deactivate all sidebar items
+      document.querySelectorAll('.sidebar-menu li').forEach(li => li.classList.remove('active'));
+
+      // Show target panel
+      const targetPanel = document.getElementById(`panel-${panelId}`);
+      if (targetPanel) targetPanel.style.display = 'block';
+
+      // Set active class in sidebar
+      const targetLi = document.getElementById(`li-${panelId}`);
+      if (targetLi) targetLi.classList.add('active');
+
+      // Trigger data loads
+      if (panelId === 'admin-analytics') loadAdminAnalytics();
+      if (panelId === 'admin-pending') loadPendingAlumni();
+      if (panelId === 'admin-stories') loadStoriesApprovals();
+      
+      if (panelId === 'alumni-mentorship') loadIncomingMentorship();
+      if (panelId === 'alumni-mentees') loadActiveMentees();
+      if (panelId === 'alumni-jobs') loadMyJobPostings();
+      
+      if (panelId === 'student-mentorship') loadStudentMentorshipStatus();
+    }
+
+    // Load default panel based on user role
+    function loadDefaultPanel() {
+      if (user.role === 'admin') {
+        switchPanel('admin-analytics');
+      } else if (user.role === 'alumni') {
+        switchPanel('alumni-mentorship');
+      } else if (user.role === 'student') {
+        switchPanel('student-mentorship');
+      }
+    }
+
+    // ================= DATA LOADING FUNCTIONS =================
+
+    // A. ADMIN ANALYTICS
+    async function loadAdminAnalytics() {
+      try {
+        const data = await apiCall('/admin/analytics');
+        document.getElementById('admin-stat-alumni').innerText = data.totalAlumni;
+        document.getElementById('admin-stat-students').innerText = data.totalStudents;
+
+        // Render Department SVG graph
+        const deptContainer = document.getElementById('chart-dept-container');
+        if (data.byDepartment.length === 0) {
+          deptContainer.innerHTML = `<p style="color:var(--text-muted);">No data available.</p>`;
+        } else {
+          // Render a neat horizontal bar chart in SVG
+          const maxVal = Math.max(...data.byDepartment.map(d => d.count), 1);
+          let barsHtml = data.byDepartment.map((d, index) => {
+            const barWidth = (d.count / maxVal) * 70; // percent of width
+            const yPos = 30 + index * 40;
+            return `
+              <text x="10" y="${yPos + 18}" fill="var(--primary-color)" font-family="var(--font-body)" font-weight="600" font-size="14">${d.department}</text>
+              <rect x="120" y="${yPos}" width="${barWidth}%" height="24" fill="var(--accent-color)" rx="4"/>
+              <text x="calc(120px + ${barWidth}% + 10px)" y="${yPos + 18}" fill="var(--text-dark)" font-family="var(--font-body)" font-size="14">${d.count}</text>
+            `;
+          }).join('');
+
+          const height = 40 + data.byDepartment.length * 40;
+          deptContainer.innerHTML = `
+            <svg style="width:100%; height:${height}px;">
+              ${barsHtml}
+            </svg>
+          `;
+        }
+
+        // Render Batch Year SVG graph
+        const yearContainer = document.getElementById('chart-year-container');
+        if (data.byYear.length === 0) {
+          yearContainer.innerHTML = `<p style="color:var(--text-muted);">No data available.</p>`;
+        } else {
+          const maxVal = Math.max(...data.byYear.map(y => y.count), 1);
+          let barsHtml = data.byYear.map((y, index) => {
+            const barWidth = (y.count / maxVal) * 70;
+            const yPos = 30 + index * 40;
+            return `
+              <text x="10" y="${yPos + 18}" fill="var(--primary-color)" font-family="var(--font-body)" font-weight="600" font-size="14">Class of ${y.batch_year}</text>
+              <rect x="120" y="${yPos}" width="${barWidth}%" height="24" fill="var(--primary-light)" rx="4"/>
+              <text x="calc(120px + ${barWidth}% + 10px)" y="${yPos + 18}" fill="var(--text-dark)" font-family="var(--font-body)" font-size="14">${y.count}</text>
+            `;
+          }).join('');
+
+          const height = 40 + data.byYear.length * 40;
+          yearContainer.innerHTML = `
+            <svg style="width:100%; height:${height}px;">
+              ${barsHtml}
+            </svg>
+          `;
+        }
+
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    // Export CSV
+    async function exportAlumniCSV() {
+      try {
+        const csvContent = await apiCall('/admin/export');
+        
+        // Trigger file download
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', 'VSB_Alumni_Directory.csv');
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        showToast('CSV export started!');
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    // B. PENDING REGISTRATIONS (ADMIN)
+    async function loadPendingAlumni() {
+      const listEl = document.getElementById('admin-pending-list');
+      try {
+        const pending = await apiCall('/admin/pending');
+        if (pending.length === 0) {
+          listEl.innerHTML = `<p style="color:var(--text-muted); padding:2rem; text-align:center;">No pending registrations at this time.</p>`;
+          return;
+        }
+
+        listEl.innerHTML = `
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Photo</th>
+                <th>Name</th>
+                <th>Batch</th>
+                <th>Dept</th>
+                <th>Details</th>
+                <th>Requested Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${pending.map(p => `
+                <tr>
+                  <td><img src="${p.profile_photo}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;"></td>
+                  <td><strong>${p.name}</strong><br><span style="font-size:0.75rem; color:var(--text-muted);">${p.email}</span></td>
+                  <td>Class of ${p.batch_year}</td>
+                  <td>${p.department}</td>
+                  <td><span style="font-size:0.8rem;">${p.current_role} @ ${p.current_company}</span></td>
+                  <td>${new Date(p.created_at).toLocaleDateString()}</td>
+                  <td>
+                    <button class="btn btn-primary" onclick="respondAlumniRegistration(${p.user_id}, 'approve')" style="padding:0.3rem 0.6rem; font-size:0.75rem; border-radius:4px;"><i class="fa-solid fa-check"></i> Approve</button>
+                    <button class="btn btn-danger" onclick="respondAlumniRegistration(${p.user_id}, 'reject')" style="padding:0.3rem 0.6rem; font-size:0.75rem; border-radius:4px; border:none;"><i class="fa-solid fa-xmark"></i> Reject</button>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
+      } catch (err) {
+        listEl.innerHTML = `<p style="color:#e53e3e;">Error loading pending registrations: ${err.message}</p>`;
+      }
+    }
+
+    async function respondAlumniRegistration(id, action) {
+      if (!confirm(`Are you sure you want to ${action} this registration?`)) return;
+      try {
+        if (action === 'approve') {
+          await apiCall(`/admin/approve/${id}`, { method: 'PUT' });
+          showToast('Alumni account approved!');
+        } else {
+          await apiCall(`/admin/reject/${id}`, { method: 'DELETE' });
+          showToast('Alumni account registration rejected.');
+        }
+        loadPendingAlumni();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    // C. PENDING SUCCESS STORIES (ADMIN)
+    async function loadStoriesApprovals() {
+      const listEl = document.getElementById('admin-stories-list');
+      try {
+        const stories = await apiCall('/stories/all');
+        const pending = stories.filter(s => s.is_approved === 0);
+
+        if (pending.length === 0) {
+          listEl.innerHTML = `<p style="color:var(--text-muted); padding:2rem; text-align:center;">No success stories pending approval.</p>`;
+          return;
+        }
+
+        listEl.innerHTML = pending.map(s => `
+          <div style="background: white; border-radius: var(--radius-md); box-shadow: var(--shadow-soft); padding: 1.5rem; margin-bottom: 1.5rem; border-left: 4px solid var(--accent-color);">
+            <h4 style="font-size:1.2rem; margin-bottom:0.25rem;">Headline: "${s.headline}"</h4>
+            <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">Submitted by: <strong>${s.author_name}</strong> (${s.department}) &bull; ${new Date(s.created_at).toLocaleDateString()}</p>
+            <p style="white-space:pre-line; color:var(--text-dark); font-size:0.95rem; margin-bottom:1.5rem; padding:1rem; background:#f8fafc; border-radius:6px; border:1px solid #edf2f7;">${s.writeup}</p>
+            <div style="display:flex; gap:1rem;">
+              <button class="btn btn-primary" onclick="approveStory(${s.id})" style="padding:0.4rem 1rem; font-size:0.85rem;"><i class="fa-solid fa-check"></i> Approve & Publish</button>
+              <button class="btn btn-danger" onclick="deleteStory(${s.id})" style="padding:0.4rem 1rem; font-size:0.85rem; border:none;"><i class="fa-solid fa-trash"></i> Delete</button>
+            </div>
+          </div>
+        `).join('');
+      } catch (err) {
+        listEl.innerHTML = `<p style="color:#e53e3e;">Error loading stories: ${err.message}</p>`;
+      }
+    }
+
+    async function approveStory(id) {
+      try {
+        await apiCall(`/stories/${id}/approve`, { method: 'PUT' });
+        showToast('Story approved and is now live!');
+        loadStoriesApprovals();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    async function deleteStory(id) {
+      if (!confirm('Are you sure you want to delete this story submission?')) return;
+      try {
+        await apiCall(`/stories/${id}`, { method: 'DELETE' });
+        showToast('Success story deleted.');
+        loadStoriesApprovals();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    // D. INCOMING MENTORSHIP REQUESTS (ALUMNI)
+    async function loadIncomingMentorship() {
+      const listEl = document.getElementById('alumni-incoming-requests');
+      try {
+        const requests = await apiCall('/mentorship/requests/incoming');
+        const pending = requests.filter(r => r.status === 'Pending');
+
+        if (pending.length === 0) {
+          listEl.innerHTML = `<p style="color:var(--text-muted); padding:2rem; text-align:center;">No pending mentorship invites at this time.</p>`;
+          return;
+        }
+
+        listEl.innerHTML = pending.map(r => `
+          <div class="req-card">
+            <div style="flex-grow:1;">
+              <h4 style="font-size:1.15rem; margin-bottom:0.25rem;">Request from: <strong>${r.student_name}</strong> (${r.student_department} Department)</h4>
+              <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.75rem;">Received on ${new Date(r.created_at).toLocaleDateString()}</p>
+              <p style="background:#f8fafc; padding:1rem; border-radius:6px; border:1px solid #edf2f7; font-size:0.95rem; line-height:1.5; color:var(--text-dark);">"${r.request_message}"</p>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:0.5rem; margin-left:1.5rem;">
+              <button class="btn btn-teal" onclick="respondMentorship(${r.id}, 'Accepted')" style="padding:0.4rem 1rem; font-size:0.85rem;"><i class="fa-solid fa-check"></i> Accept</button>
+              <button class="btn btn-danger" onclick="respondMentorship(${r.id}, 'Declined')" style="padding:0.4rem 1rem; font-size:0.85rem; border:none;"><i class="fa-solid fa-xmark"></i> Decline</button>
+            </div>
+          </div>
+        `).join('');
+      } catch (err) {
+        listEl.innerHTML = `<p style="color:#e53e3e;">Error loading requests: ${err.message}</p>`;
+      }
+    }
+
+    async function respondMentorship(id, status) {
+      try {
+        await apiCall(`/mentorship/requests/${id}`, {
+          method: 'PUT',
+          body: JSON.stringify({ status })
+        });
+        showToast(`Request ${status.toLowerCase()}!`);
+        loadIncomingMentorship();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    // E. ACTIVE MENTEES (ALUMNI)
+    async function loadActiveMentees() {
+      const listEl = document.getElementById('alumni-mentees-list');
+      try {
+        const requests = await apiCall('/mentorship/requests/incoming');
+        const accepted = requests.filter(r => r.status === 'Accepted');
+
+        if (accepted.length === 0) {
+          listEl.innerHTML = `<p style="color:var(--text-muted); padding:2rem; text-align:center;">You don't have any active student mentees.</p>`;
+          return;
+        }
+
+        listEl.innerHTML = accepted.map(r => `
+          <div class="req-card" style="align-items: center;">
+            <div>
+              <h4 style="font-size:1.15rem; margin-bottom:0.25rem;">${r.student_name}</h4>
+              <p style="font-size:0.85rem; color:var(--text-muted);">${r.student_department} Department</p>
+              <p style="font-size:0.9rem; color:var(--text-dark); margin-top:0.5rem; font-style:italic;">"${r.request_message}"</p>
+            </div>
+            <div style="text-align: right; min-width: 250px;">
+              <span class="req-status status-accepted" style="display:inline-block; margin-bottom:0.5rem;"><i class="fa-solid fa-check"></i> Connected</span>
+              <div style="font-size:0.9rem; color:var(--primary-color);">
+                <i class="fa-solid fa-envelope"></i> <a href="mailto:${r.student_email}" style="font-weight:600; text-decoration:underline;">${r.student_email}</a>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      } catch (err) {
+        listEl.innerHTML = `<p style="color:#e53e3e;">Error loading mentees: ${err.message}</p>`;
+      }
+    }
+
+    // F. MY JOB POSTINGS (ALUMNI)
+    async function loadMyJobPostings() {
+      const listEl = document.getElementById('alumni-jobs-list');
+      try {
+        const jobs = await apiCall('/jobs');
+        // Filter jobs posted by me
+        const myJobs = jobs.filter(j => j.poster_id === user.id);
+
+        if (myJobs.length === 0) {
+          listEl.innerHTML = `<p style="color:var(--text-muted); padding:2rem; text-align:center;">You haven't posted any job listings.</p>`;
+          return;
+        }
+
+        listEl.innerHTML = myJobs.map(j => `
+          <div class="req-card" style="align-items: center;">
+            <div>
+              <h4 style="font-size:1.2rem; margin-bottom:0.25rem;">${j.title}</h4>
+              <p style="font-size:0.85rem; color:var(--text-muted);">${j.company} &bull; ${j.location} &bull; ${j.type}</p>
+            </div>
+            <button class="btn btn-danger" onclick="deleteJob(${j.id})" style="padding:0.4rem 1rem; font-size:0.85rem; border:none;"><i class="fa-solid fa-trash"></i> Delete Post</button>
+          </div>
+        `).join('');
+      } catch (err) {
+        listEl.innerHTML = `<p style="color:#e53e3e;">Error loading jobs: ${err.message}</p>`;
+      }
+    }
+
+    async function deleteJob(id) {
+      if (!confirm('Are you sure you want to delete this job posting?')) return;
+      try {
+        await apiCall(`/jobs/${id}`, { method: 'DELETE' });
+        showToast('Job listing deleted successfully.');
+        loadMyJobPostings();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    // G. SUBMIT SUCCESS STORY (ALUMNI)
+    async function handleStorySubmit(event) {
+      event.preventDefault();
+      const headline = document.getElementById('story-headline').value;
+      const photo = document.getElementById('story-photo').value;
+      const writeup = document.getElementById('story-writeup').value;
+
+      try {
+        await apiCall('/stories', {
+          method: 'POST',
+          body: JSON.stringify({ headline, photo, writeup })
+        });
+
+        showToast('Story submitted! Pending admin review.');
+        document.getElementById('submit-story-form').reset();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    // H. STUDENT MENTORSHIP STATUS (STUDENT)
+    async function loadStudentMentorshipStatus() {
+      const listEl = document.getElementById('student-requests-list');
+      try {
+        const requests = await apiCall('/mentorship/requests/outgoing');
+
+        if (requests.length === 0) {
+          listEl.innerHTML = `
+            <div style="text-align:center; padding:2rem;">
+              <p style="color:var(--text-muted); margin-bottom:1rem;">You don't have any pending or active mentorship connections.</p>
+              <a href="/mentorship.html" class="btn btn-teal">Find a Mentor Now</a>
+            </div>
+          `;
+          return;
+        }
+
+        listEl.innerHTML = requests.map(r => {
+          let statusClass = 'status-pending';
+          if (r.status === 'Accepted') statusClass = 'status-accepted';
+          if (r.status === 'Declined') statusClass = 'status-declined';
+
+          let contactInfo = '';
+          if (r.status === 'Accepted') {
+            contactInfo = `
+              <div style="margin-top:0.75rem; border-top:1px solid #edf2f7; padding-top:0.5rem; font-size:0.9rem;">
+                <span style="font-weight:600; color:var(--primary-color);">Mentor Contact Email:</span>
+                <a href="mailto:${r.mentor_email}" style="font-weight:600; text-decoration:underline;">${r.mentor_email}</a>
+              </div>
+            `;
+          }
+
+          return `
+            <div class="req-card" style="flex-direction:column; align-items:stretch;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; align-items:center; gap:1rem;">
+                  <img src="${r.mentor_photo}" style="width:45px; height:45px; border-radius:50%; object-fit:cover;">
+                  <div>
+                    <h4 style="font-size:1.15rem; margin-bottom:0.15rem;"><a href="/profile.html?id=${r.mentor_id}" style="text-decoration:underline; color:var(--primary-color);">${r.mentor_name}</a></h4>
+                    <p style="font-size:0.8rem; color:var(--text-muted);">${r.mentor_expertise}</p>
+                  </div>
+                </div>
+                <span class="req-status ${statusClass}">${r.status}</span>
+              </div>
+              <p style="background:#f8fafc; padding:0.75rem; border-radius:6px; border:1px solid #edf2f7; font-size:0.9rem; margin-top:0.75rem; color:var(--text-dark);">
+                <strong>Your Message:</strong> "${r.request_message}"
+              </p>
+              ${contactInfo}
+            </div>
+          `;
+        }).join('');
+      } catch (err) {
+        listEl.innerHTML = `<p style="color:#e53e3e;">Error loading status: ${err.message}</p>`;
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alumni Connect | VSB Engineering College</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar" id="main-navbar"></nav>
+
+  <!-- Hero Section -->
+  <header class="hero">
+    <div class="hero-content">
+      <h1>Connecting Generations of VSB Engineers</h1>
+      <p>A centralized platform for Alumni profile management, career mentorship, job postings, and college engagement.</p>
+      <div class="hero-cta" id="hero-actions">
+        <a href="/login.html" class="btn btn-primary">Join the Network</a>
+        <a href="/stories.html" class="btn btn-secondary">Explore Success Stories</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="container">
+
+    <!-- Stats Bar -->
+    <section class="stats-bar" id="stats-section">
+      <div class="stat-item">
+        <div class="stat-number" id="stat-alumni">0</div>
+        <div class="stat-label">Total Alumni</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number" id="stat-mentors">0</div>
+        <div class="stat-label">Expert Mentors</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number" id="stat-jobs">0</div>
+        <div class="stat-label">Job Postings</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number" id="stat-events">0</div>
+        <div class="stat-label">Events Hosted</div>
+      </div>
+    </section>
+
+    <!-- Success Stories Carousel Section -->
+    <section style="margin-bottom: 4rem;">
+      <div class="section-title">
+        <h2>Alumni Spotlight & Success Stories</h2>
+        <a href="/stories.html" class="btn btn-teal" style="font-size: 0.9rem; padding: 0.4rem 1rem;">View All Stories</a>
+      </div>
+      
+      <!-- Carousel Wrapper -->
+      <div class="carousel-container" id="stories-carousel">
+        <!-- Slides will be injected dynamically -->
+        <div style="padding: 3rem; text-align: center; color: white; background: var(--primary-color);">
+          Loading featured success stories...
+        </div>
+      </div>
+    </section>
+
+    <!-- Events & Jobs Preview -->
+    <section style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 4rem; flex-wrap: wrap;">
+      
+      <!-- Events Preview -->
+      <div>
+        <div class="section-title">
+          <h2>Upcoming Events</h2>
+          <a href="/events.html" style="font-size: 0.9rem; color: var(--primary-color); font-weight: 600;">View All</a>
+        </div>
+        <div id="events-preview-list" style="display: flex; flex-direction: column; gap: 1rem;">
+          <p style="color: var(--text-muted);">Loading events...</p>
+        </div>
+      </div>
+
+      <!-- Jobs Preview -->
+      <div>
+        <div class="section-title">
+          <h2>Job Board Snippet</h2>
+          <a href="/jobs.html" style="font-size: 0.9rem; color: var(--primary-color); font-weight: 600;">View All</a>
+        </div>
+        <div id="jobs-preview-list" style="display: flex; flex-direction: column; gap: 1rem;">
+          <p style="color: var(--text-muted);">Login to view job opportunities.</p>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <footer style="background-color: var(--primary-dark); color: white; padding: 2.5rem; text-align: center; border-top: 4px solid var(--accent-color);">
+    <p>&copy; 2026 VSB Engineering College - ECE Department. All rights reserved.</p>
+    <p style="font-size: 0.8rem; color: rgba(255, 255, 255, 0.6); margin-top: 0.5rem;">Alumni Connect Platform - SIH25017</p>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/js/api.js"></script>
+  <script src="/js/app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      // 1. Load Stats
+      try {
+        const stats = await apiCall('/public/stats');
+        document.getElementById('stat-alumni').innerText = stats.alumni;
+        document.getElementById('stat-mentors').innerText = stats.mentors;
+        document.getElementById('stat-jobs').innerText = stats.jobs;
+        document.getElementById('stat-events').innerText = stats.events;
+      } catch (err) {
+        console.error('Failed to load stats:', err);
+      }
+
+      // Adjust Hero Actions if logged in
+      const user = getUser();
+      if (user) {
+        document.getElementById('hero-actions').innerHTML = `
+          <a href="/dashboard.html" class="btn btn-primary">Go to Dashboard</a>
+          <a href="/directory.html" class="btn btn-secondary">Search Directory</a>
+        `;
+      }
+
+      // 2. Load Success Stories Carousel
+      try {
+        const stories = await apiCall('/stories');
+        const carousel = document.getElementById('stories-carousel');
+        
+        if (stories.length === 0) {
+          carousel.innerHTML = `<div style="padding: 3rem; text-align: center; color: white; background: var(--primary-color);">No success stories published yet.</div>`;
+        } else {
+          // Take first 3-4 stories
+          const featured = stories.slice(0, 4);
+          let slidesHtml = '';
+          let dotsHtml = '';
+
+          featured.forEach((story, idx) => {
+            const activeClass = idx === 0 ? 'active' : '';
+            slidesHtml += `
+              <div class="carousel-slide ${activeClass}" id="slide-${idx}">
+                <div class="carousel-image" style="background-image: url('${story.photo || 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80&w=400'}')"></div>
+                <div class="carousel-content">
+                  <h3>"${story.headline}"</h3>
+                  <div class="carousel-author">— ${story.author_name} (${story.department})</div>
+                  <p class="carousel-quote">${story.writeup}</p>
+                </div>
+              </div>
+            `;
+            dotsHtml += `<div class="carousel-dot ${activeClass}" onclick="setSlide(${idx})"></div>`;
+          });
+
+          carousel.innerHTML = `
+            ${slidesHtml}
+            <div class="carousel-nav">
+              ${dotsHtml}
+            </div>
+          `;
+
+          // Setup auto slide
+          let currentSlide = 0;
+          const totalSlides = featured.length;
+
+          window.setSlide = (idx) => {
+            document.querySelectorAll('.carousel-slide').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.carousel-dot').forEach(d => d.classList.remove('active'));
+            
+            const targetSlide = document.getElementById(`slide-${idx}`);
+            if (targetSlide) targetSlide.classList.add('active');
+            
+            const dots = document.querySelectorAll('.carousel-dot');
+            if (dots[idx]) dots[idx].classList.add('active');
+            
+            currentSlide = idx;
+          };
+
+          setInterval(() => {
+            let next = (currentSlide + 1) % totalSlides;
+            window.setSlide(next);
+          }, 6000);
+        }
+      } catch (err) {
+        console.error('Failed to load success stories:', err);
+      }
+
+      // 3. Load Events Preview
+      if (user) {
+        try {
+          const events = await apiCall('/events');
+          const previewList = document.getElementById('events-preview-list');
+          if (events.length === 0) {
+            previewList.innerHTML = `<p style="color: var(--text-muted);">No upcoming events scheduled.</p>`;
+          } else {
+            previewList.innerHTML = events.slice(0, 3).map(e => `
+              <div style="background: white; padding: 1.25rem; border-radius: var(--radius-md); box-shadow: var(--shadow-soft); display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--accent-color);">
+                <div>
+                  <h4 style="font-size: 1.1rem; margin-bottom: 0.25rem;">${e.title}</h4>
+                  <p style="font-size: 0.85rem; color: var(--text-muted);">${new Date(e.date).toLocaleDateString()} &bull; ${e.location}</p>
+                </div>
+                <div style="text-align: right;">
+                  <span style="font-size: 0.8rem; font-weight: 600; color: var(--primary-color); display: block;">${(e.base_rsvp_count || 0) + (e.active_rsvp_count || 0)} RSVPs</span>
+                  <a href="/events.html" class="btn btn-teal" style="font-size: 0.8rem; padding: 0.25rem 0.75rem; margin-top: 0.25rem;">View Details</a>
+                </div>
+              </div>
+            `).join('');
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      } else {
+        document.getElementById('events-preview-list').innerHTML = `
+          <div style="background: white; padding: 1.5rem; border-radius: var(--radius-md); text-align: center; box-shadow: var(--shadow-soft);">
+            <p style="color: var(--text-muted); margin-bottom: 1rem;">Log in to view upcoming event details and RSVP.</p>
+            <a href="/login.html" class="btn btn-teal" style="font-size: 0.9rem; padding: 0.4rem 1rem;">Login Now</a>
+          </div>
+        `;
+      }
+
+      // 4. Load Jobs Preview
+      if (user) {
+        try {
+          const jobs = await apiCall('/jobs');
+          const previewList = document.getElementById('jobs-preview-list');
+          if (jobs.length === 0) {
+            previewList.innerHTML = `<p style="color: var(--text-muted);">No job listings active.</p>`;
+          } else {
+            previewList.innerHTML = jobs.slice(0, 3).map(j => `
+              <div style="background: white; padding: 1.25rem; border-radius: var(--radius-md); box-shadow: var(--shadow-soft); border-left: 4px solid var(--primary-color); display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <h4 style="font-size: 1.1rem; margin-bottom: 0.25rem;">${j.title}</h4>
+                  <p style="font-size: 0.85rem; color: var(--text-muted);">${j.company} &bull; ${j.location} &bull; ${j.type}</p>
+                </div>
+                <a href="/jobs.html" class="btn btn-primary" style="font-size: 0.8rem; padding: 0.3rem 0.75rem;">View</a>
+              </div>
+            `).join('');
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      } else {
+        document.getElementById('jobs-preview-list').innerHTML = `
+          <div style="background: white; padding: 1.5rem; border-radius: var(--radius-md); text-align: center; box-shadow: var(--shadow-soft);">
+            <p style="color: var(--text-muted); margin-bottom: 1rem;">Log in to search or apply for job postings.</p>
+            <a href="/login.html" class="btn btn-teal" style="font-size: 0.9rem; padding: 0.4rem 1rem;">Login Now</a>
+          </div>
+        `;
+      }
+    });
+  </script>
+</body>
+</html>

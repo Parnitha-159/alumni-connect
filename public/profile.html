@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alumni Profile | Alumni Connect</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar" id="main-navbar"></nav>
+
+  <main class="container">
+    
+    <!-- Profile View Mode -->
+    <div id="profile-view-mode" class="profile-grid">
+      
+      <!-- Left column: Photo and Quick info -->
+      <section class="profile-sidebar">
+        <div class="profile-avatar-container">
+          <img src="" id="view-avatar" class="profile-avatar" alt="Avatar">
+        </div>
+        <h2 id="view-name" style="margin-bottom: 0.25rem;"></h2>
+        <p id="view-role-title" style="color: var(--text-muted); font-size: 0.9rem; font-weight: 600; margin-bottom: 1rem;"></p>
+        
+        <div style="border-top: 1px solid var(--border-color); padding-top: 1rem; text-align: left;">
+          <div class="contact-item">
+            <span class="contact-label">Batch:</span>
+            <span id="view-batch"></span>
+          </div>
+          <div class="contact-item">
+            <span class="contact-label">Dept:</span>
+            <span id="view-dept"></span>
+          </div>
+          <div class="contact-item">
+            <span class="contact-label">Location:</span>
+            <span id="view-location"></span>
+          </div>
+        </div>
+
+        <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem;" id="owner-actions">
+          <!-- Populated dynamically if current user is owner -->
+        </div>
+      </section>
+
+      <!-- Right column: Bio, Contact, Mentor info -->
+      <section class="profile-main">
+        <div class="dashboard-card" style="padding:0; box-shadow:none; border:none; margin-bottom: 1.5rem;">
+          <h3 style="border-bottom: 2px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 1rem;">Professional Bio</h3>
+          <p id="view-bio" style="white-space: pre-line; color: var(--text-dark); font-size: 1rem;"></p>
+        </div>
+
+        <div class="dashboard-card" style="padding:0; box-shadow:none; border:none; margin-bottom: 1.5rem;">
+          <h3 style="border-bottom: 2px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 1rem;">Contact Details</h3>
+          <div class="contact-item">
+            <i class="fa-solid fa-envelope" style="color: var(--accent-color); width: 25px;"></i>
+            <span class="contact-label">Email:</span>
+            <a href="" id="view-email"></a>
+          </div>
+          <div class="contact-item">
+            <i class="fa-solid fa-phone" style="color: var(--accent-color); width: 25px;"></i>
+            <span class="contact-label">Phone:</span>
+            <span id="view-phone"></span>
+          </div>
+          <div class="contact-item">
+            <i class="fa-brands fa-linkedin" style="color: #0077b5; width: 25px;"></i>
+            <span class="contact-label">LinkedIn:</span>
+            <a href="" id="view-linkedin" target="_blank">Connect on LinkedIn</a>
+          </div>
+        </div>
+
+        <div class="dashboard-card" id="view-mentor-card" style="padding:1.5rem; background: rgba(212, 168, 83, 0.08); border: 1px solid var(--accent-color); display: none;">
+          <h3 style="color: var(--primary-dark); margin-bottom: 0.5rem;"><i class="fa-solid fa-graduation-cap"></i> Registered Mentor</h3>
+          <p style="margin-bottom: 0.5rem;">This alumnus is registered to provide guidance and advice to students in the following fields:</p>
+          <p style="font-weight: 700; color: var(--primary-color);" id="view-mentor-expertise"></p>
+          <div id="student-actions" style="margin-top: 1rem;">
+            <!-- Student can request mentorship here -->
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Profile Edit Mode -->
+    <div id="profile-edit-mode" class="form-card" style="display: none; max-width: 800px;">
+      <h2 style="margin-bottom: 1.5rem; border-bottom: 2px solid var(--border-color); padding-bottom: 0.5rem;">Edit Profile</h2>
+      
+      <form id="edit-profile-form" onsubmit="handleProfileUpdate(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="edit-name">Full Name</label>
+            <input type="text" id="edit-name" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="edit-dept">Department</label>
+            <select id="edit-dept" class="form-control" required>
+              <option value="ECE">ECE</option>
+              <option value="CSE">CSE</option>
+              <option value="IT">IT</option>
+              <option value="EEE">EEE</option>
+              <option value="MECH">MECH</option>
+              <option value="CIVIL">CIVIL</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="edit-batch">Batch Year</label>
+            <input type="number" id="edit-batch" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="edit-location">Current Location</label>
+            <input type="text" id="edit-location" class="form-control">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="edit-company">Current Company</label>
+            <input type="text" id="edit-company" class="form-control">
+          </div>
+          <div class="form-group">
+            <label for="edit-role">Current Role</label>
+            <input type="text" id="edit-role" class="form-control">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="edit-linkedin">LinkedIn Profile URL</label>
+            <input type="url" id="edit-linkedin" class="form-control">
+          </div>
+          <div class="form-group">
+            <label for="edit-phone">Phone Number</label>
+            <input type="tel" id="edit-phone" class="form-control">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="edit-photo">Update Profile Photo</label>
+          <input type="file" id="edit-photo" class="form-control" accept="image/*" onchange="processEditPhoto(event)">
+          <input type="hidden" id="edit-photo-base64">
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">Leave empty to keep current photo.</p>
+        </div>
+
+        <div class="form-group">
+          <label for="edit-bio">Professional Bio</label>
+          <textarea id="edit-bio" class="form-control" rows="5"></textarea>
+        </div>
+
+        <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem; margin-top: 1.5rem;">
+          <input type="checkbox" id="edit-mentor-opt" style="width: 18px; height: 18px;" onchange="toggleEditMentorExpertise()">
+          <label for="edit-mentor-opt" style="margin-bottom: 0; cursor: pointer; font-weight: 600;">Available for Student Mentorship</label>
+        </div>
+
+        <div class="form-group" id="edit-mentor-expertise-group" style="display: none; margin-top: 0.5rem;">
+          <label for="edit-mentor-exp">Domain / Expertise Area</label>
+          <input type="text" id="edit-mentor-exp" class="form-control" placeholder="e.g. Web Development, VLSI, Embedded Systems">
+        </div>
+
+        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+          <button type="submit" class="btn btn-primary" style="flex:1;">Save Changes</button>
+          <button type="button" class="btn btn-secondary" onclick="toggleEditMode(false)" style="color:var(--text-dark); border-color:var(--border-color);">Cancel</button>
+        </div>
+      </form>
+    </div>
+
+  </main>
+
+  <footer style="background-color: var(--primary-dark); color: white; padding: 2.5rem; text-align: center; border-top: 4px solid var(--accent-color); margin-top: 4rem;">
+    <p>&copy; 2026 VSB Engineering College - ECE Department. All rights reserved.</p>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/js/api.js"></script>
+  <script src="/js/app.js"></script>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const profileId = urlParams.get('id');
+    const currentUser = getUser();
+    let profileData = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!profileId) {
+        showToast('No profile ID specified.', 'error');
+        return;
+      }
+      loadProfileDetails();
+    });
+
+    async function loadProfileDetails() {
+      try {
+        profileData = await apiCall(`/alumni/${profileId}`);
+        
+        // Render read-only details
+        document.getElementById('view-avatar').src = profileData.profile_photo || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(profileData.name);
+        document.getElementById('view-name').innerText = profileData.name;
+        document.getElementById('view-role-title').innerText = profileData.current_role 
+          ? `${profileData.current_role} at ${profileData.current_company}` 
+          : 'Alumnus';
+        document.getElementById('view-batch').innerText = `Class of ${profileData.batch_year}`;
+        document.getElementById('view-dept').innerText = profileData.department;
+        document.getElementById('view-location').innerText = profileData.location || 'Not Specified';
+        document.getElementById('view-bio').innerText = profileData.bio || 'This alumnus hasn\'t written a bio yet.';
+        
+        // Contact details
+        const emailEl = document.getElementById('view-email');
+        emailEl.innerText = profileData.email;
+        emailEl.href = `mailto:${profileData.email}`;
+        
+        document.getElementById('view-phone').innerText = profileData.phone || 'Not Shared';
+        
+        const linkedinEl = document.getElementById('view-linkedin');
+        if (profileData.linkedin) {
+          linkedinEl.href = profileData.linkedin;
+          linkedinEl.style.display = 'inline';
+        } else {
+          linkedinEl.style.display = 'none';
+        }
+
+        // Mentor card
+        if (profileData.mentor_opt_in) {
+          document.getElementById('view-mentor-card').style.display = 'block';
+          document.getElementById('view-mentor-expertise').innerText = profileData.mentor_expertise || 'General Advice';
+          
+          // If current user is a student, let them request mentorship
+          if (currentUser && currentUser.role === 'student') {
+            document.getElementById('student-actions').innerHTML = `
+              <a href="/mentorship.html?request=${profileData.user_id}&name=${encodeURIComponent(profileData.name)}" class="btn btn-teal" style="font-size: 0.9rem; padding: 0.5rem 1rem;">
+                <i class="fa-solid fa-envelope"></i> Request Mentorship
+              </a>
+            `;
+          }
+        } else {
+          document.getElementById('view-mentor-card').style.display = 'none';
+        }
+
+        // Owner/Admin Actions
+        const ownerActions = document.getElementById('owner-actions');
+        if (currentUser && (currentUser.id === profileData.user_id || currentUser.role === 'admin')) {
+          ownerActions.innerHTML = `
+            <button onclick="toggleEditMode(true)" class="btn btn-teal"><i class="fa-solid fa-pen-to-square"></i> Edit Profile</button>
+          `;
+        } else {
+          ownerActions.innerHTML = '';
+        }
+
+        // Prepopulate edit form values
+        prepopulateEditForm();
+
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    function prepopulateEditForm() {
+      if (!profileData) return;
+      document.getElementById('edit-name').value = profileData.name;
+      document.getElementById('edit-dept').value = profileData.department;
+      document.getElementById('edit-batch').value = profileData.batch_year || '';
+      document.getElementById('edit-location').value = profileData.location || '';
+      document.getElementById('edit-company').value = profileData.current_company || '';
+      document.getElementById('edit-role').value = profileData.current_role || '';
+      document.getElementById('edit-linkedin').value = profileData.linkedin || '';
+      document.getElementById('edit-phone').value = profileData.phone || '';
+      document.getElementById('edit-bio').value = profileData.bio || '';
+      
+      const optCheckbox = document.getElementById('edit-mentor-opt');
+      optCheckbox.checked = profileData.mentor_opt_in === 1;
+      
+      const expInput = document.getElementById('edit-mentor-exp');
+      expInput.value = profileData.mentor_expertise || '';
+      
+      toggleEditMentorExpertise();
+    }
+
+    function toggleEditMode(edit) {
+      const viewMode = document.getElementById('profile-view-mode');
+      const editMode = document.getElementById('profile-edit-mode');
+
+      if (edit) {
+        viewMode.style.display = 'none';
+        editMode.style.display = 'block';
+      } else {
+        viewMode.style.display = 'grid';
+        editMode.style.display = 'none';
+      }
+    }
+
+    function toggleEditMentorExpertise() {
+      const optIn = document.getElementById('edit-mentor-opt').checked;
+      const expGroup = document.getElementById('edit-mentor-expertise-group');
+      const expInput = document.getElementById('edit-mentor-exp');
+
+      if (optIn) {
+        expGroup.style.display = 'block';
+        expInput.setAttribute('required', 'true');
+      } else {
+        expGroup.style.display = 'none';
+        expInput.removeAttribute('required');
+      }
+    }
+
+    function processEditPhoto(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById('edit-photo-base64').value = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function handleProfileUpdate(event) {
+      event.preventDefault();
+
+      const name = document.getElementById('edit-name').value;
+      const department = document.getElementById('edit-dept').value;
+      const batch_year = document.getElementById('edit-batch').value;
+      const location = document.getElementById('edit-location').value;
+      const current_company = document.getElementById('edit-company').value;
+      const current_role = document.getElementById('edit-role').value;
+      const linkedin = document.getElementById('edit-linkedin').value;
+      const phone = document.getElementById('edit-phone').value;
+      const bio = document.getElementById('edit-bio').value;
+      const mentor_opt_in = document.getElementById('edit-mentor-opt').checked;
+      const mentor_expertise = document.getElementById('edit-mentor-exp').value;
+      const photoBase64 = document.getElementById('edit-photo-base64').value;
+
+      let photoUrl = profileData.profile_photo;
+      if (photoBase64) {
+        try {
+          const uploadRes = await apiCall('/upload', {
+            method: 'POST',
+            body: JSON.stringify({ base64Data: photoBase64 })
+          });
+          photoUrl = uploadRes.url;
+        } catch (uploadErr) {
+          console.error(uploadErr);
+          showToast('Failed to upload new photo.', 'error');
+        }
+      }
+
+      const body = {
+        name,
+        department,
+        batch_year,
+        location,
+        current_company,
+        current_role,
+        linkedin,
+        phone,
+        profile_photo: photoUrl,
+        bio,
+        mentor_opt_in,
+        mentor_expertise
+      };
+
+      try {
+        await apiCall(`/alumni/${profileId}`, {
+          method: 'PUT',
+          body: JSON.stringify(body)
+        });
+
+        showToast('Profile updated successfully!');
+        
+        // If current logged-in user is editing their OWN profile, update their local session name/dept
+        if (currentUser && currentUser.id === parseInt(profileId)) {
+          currentUser.name = name;
+          currentUser.department = department;
+          setUser(currentUser);
+          renderNavbar(); // re-render navbar with new name
+        }
+
+        setTimeout(() => {
+          toggleEditMode(false);
+          loadProfileDetails();
+        }, 1000);
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+  </script>
+</body>
+</html>
