@@ -1,6 +1,9 @@
 {
   "name": "alumni-connect",
   "version": "1.0.0",
+  "engines": {
+    "node":"20.x"
+  },
   "description": "Alumni Connect - Centralized Alumni Data Management and Engagement Platform (SIH25017)",
   "main": "server.js",
   "scripts": {
